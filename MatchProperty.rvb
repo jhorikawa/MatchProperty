@@ -1,6 +1,6 @@
 Option Explicit
-'Script written by <insert name>
-'Script copyrighted by <insert company name>
+'Script written by <Junichiro Horikawa>
+'Script copyrighted by <Junichiro Horikawa>
 'Script version 2010年6月9日 21:53:55
 
 Call Main()
