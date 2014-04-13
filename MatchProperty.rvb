@@ -1,0 +1,104 @@
+Option Explicit
+'Script written by <insert name>
+'Script copyrighted by <insert company name>
+'Script version 2010年6月9日 21:53:55
+
+Call Main()
+Sub Main()
+	Dim arrGroups, strGroup, arrGroupsC, strGroupC
+	Dim intCount, intObjectType
+	Dim strObject, arrChangeObjects, strEachObject, strChangeObject
+	Dim strHatchPattern, dblHatchRotation, dblHatchScale
+	Dim strTextFont, strTextHeight, intTextStyle
+	Dim strDimStyle
+	
+	intCount = 0
+	strObject = Rhino.GetObject("Select an object to match", , False)
+	If IsNull(strObject) Then Exit Sub
+	intObjectType = Rhino.ObjectType(strObject)
+	
+	
+	
+	If intObjectType = 65536 Then
+		strHatchPattern = Rhino.HatchPattern(strObject)
+		dblHatchRotation = Rhino.HatchRotation(strObject)
+		dblHatchScale = Rhino.HatchScale(strObject)
+	Else
+		strHatchPattern = "Null"
+		dblHatchRotation = "Null"
+		dblHatchScale = "Null"
+	End If
+	
+	If Rhino.isText(strObject) Then
+		strTextFont = Rhino.TextObjectFont(strObject)
+		strTextHeight = Rhino.TextObjectHeight(strObject)
+		intTextStyle = Rhino.TextObjectStyle(strObject)
+	Else
+		strTextFont = "Null"
+		strTextHeight = "Null"
+		intTextStyle = "Null"
+	End If
+	
+	If Rhino.IsDimension(strObject) Then
+		strDimStyle = Rhino.DimensionStyle(strObject)
+	Else
+		strDimStyle = "Null"
+	End If
+	
+	
+	arrChangeObjects = Rhino.GetObjects("Select object for changing properties",, False)
+	If IsNull(arrChangeObjects) Then Exit Sub
+	
+	Rhino.EnableRedraw(False)
+	
+	For Each strChangeObject In arrChangeObjects
+		If Rhino.IsObjectInGroup(strChangeObject) = True Then
+			arrGroupsC = Rhino.ObjectGroups(strChangeObject)
+		End If
+		
+		'Rhino.MatchObjectAttributes arrChangeObjects, strObject
+		Rhino.MatchObjectAttributes strChangeObject, strObject
+		
+		Dim strChangeObjectType
+		strChangeObjectType = Rhino.ObjectType(strChangeObject)
+		If strChangeObjectType = 65536 Then
+			If strHatchPattern <> "Null" Then
+				Rhino.HatchPattern strChangeObject, strHatchPattern
+				Rhino.HatchRotation strChangeObject, dblHatchRotation
+				Rhino.HatchScale strChangeObject, dblHatchScale
+			End If
+		End If
+		
+		If Rhino.isText(strChangeObject) Then
+			If strTextFont <> "Null" Then
+				Rhino.TextObjectFont strChangeObject, strTextFont 
+				Rhino.TextObjectHeight strChangeObject, strTextHeight
+				Rhino.TextObjectStyle strChangeObject, intTextStyle
+			End If
+		End If
+		
+		If Rhino.IsDimension(strChangeObject) Then
+			If strDimStyle <> "Null" Then
+				Rhino.DimensionStyle strChangeObject, strDimStyle
+			End If
+		End If
+		
+		If Rhino.IsObjectInGroup(strObject) = True Then
+			arrGroups = Rhino.ObjectGroups(strObject)
+			For Each strGroup In arrGroups
+				'Rhino.Print "Object group: " & strGroup
+				Rhino.RemoveObjectFromGroup strChangeObject, strGroup
+			Next
+		End If
+		
+		If IsArray(arrGroupsC) Then
+			For Each strGroupC In arrGroupsC
+				Rhino.AddObjectToGroup strChangeObject, strGroupC
+			Next
+		End If
+		
+		arrGroupsC = Null
+	Next
+	
+	Rhino.EnableRedraw(True)
+End Sub
